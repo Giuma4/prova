@@ -1,83 +1,71 @@
-import React, { useState } from 'react';
-import { View, Text, Button, Alert, FlatList, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Appbar, Card } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useNavigation } from '@react-navigation/native';  // Importa l'hook
 
-export default function HomeScreen() {
-  const [money, setMoney] = useState(100);
-
-  const scommesse = [
-    { id: '1', titolo: 'Prof di mate interroga', quota: 1.3 },
-    { id: '2', titolo: 'Verifica a sorpresa', quota: 2.5 },
-    { id: '3', titolo: 'Prof di italiano porta i compiti dopo 2 giorni', quota: 1.8 },
-  ];
-
-  const classifica = [
-    { nome: 'Loris', soldi: 30 },
-    { nome: 'Alex', soldi: 25 },
-    { nome: 'Sara', soldi: 50 },
-  ];
-
-  const eventi = ['Settimana dello studente', 'Gita a fine maggio'];
-
-  const handleScommessa = (quota) => {
-    if (money >= 10) {
-      setMoney(prev => prev - 10);
-      const vincita = 10 * quota;
-      setMoney(prev => prev + vincita);
-      Alert.alert("Hai vinto!", `Hai guadagnato ${vincita} soldi.`);
-    } else {
-      Alert.alert("Attenzione", "Non hai abbastanza soldi per scommettere!");
-    }
-  };
+const HomeScreen = () => {
+  const navigation = useNavigation(); // Usa l'hook per ottenere la navigazione
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🎓 SchoolBet</Text>
-      <Text style={styles.subtitle}>Saldo: {money} soldi</Text>
+      <Appbar.Header>
+        <Appbar.Action icon="menu" onPress={() => {}} />
+        <Appbar.Content title="School Bet" />
+        <View style={styles.redSquareSmall} />
+      </Appbar.Header>
 
-      <Text style={styles.sectionTitle}>Scommesse disponibili</Text>
-      {scommesse.map((s) => (
-        <View key={s.id} style={styles.item}>
-          <Text>{s.titolo} - Quota: {s.quota}</Text>
-          <Button title="Scommetti 10 soldi" onPress={() => handleScommessa(s.quota)} />
-        </View>
-      ))}
+      <ScrollView style={styles.scroll}>
+        {/* Balance Card */}
+        <Card style={styles.moneyCard}>
+          <Card.Content>
+            <Text style={styles.label}>Soldi</Text>
+            <Text style={styles.money}>€1000</Text>
+          </Card.Content>
+        </Card>
 
-      <Text style={styles.sectionTitle}>🏆 Classifica</Text>
-      {classifica.map((u, i) => (
-        <Text key={i}>{i + 1}. {u.nome}: {u.soldi} soldi</Text>
-      ))}
+        {/* Classifica */}
+        <Card style={styles.classificaCard}>
+          <Card.Title title="Classifica classe" titleStyle={styles.classificaTitle} />
+          <Card.Content>
+            {/* Lista degli utenti */}
+          </Card.Content>
+        </Card>
+      </ScrollView>
 
-      <Text style={styles.sectionTitle}>🎯 Eventi Speciali</Text>
-      {eventi.map((ev, i) => (
-        <Text key={i}>{ev}</Text>
-      ))}
+      {/* Bottom Navigation */}
+      <View style={styles.bottomBar}>
+        <Icon name="home-outline" size={28} onPress={() => navigation.navigate('Home')} />
+        <Icon name="magnify" size={28} onPress={() => navigation.navigate('Search')} />
+        <Icon name="swap-horizontal" size={28} onPress={() => navigation.navigate('Swap')} />
+        <Icon name="calendar-outline" size={28} onPress={() => navigation.navigate('Calendar')} />
+      </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    paddingTop: 60,
-    backgroundColor: '#fff',
+  container: { flex: 1, backgroundColor: '#fff' },
+  scroll: { paddingHorizontal: 16 },
+  moneyCard: { marginTop: 20 },
+  label: { fontSize: 16, color: '#555' },
+  money: { fontSize: 28, fontWeight: 'bold', marginTop: 5 },
+  classificaCard: { marginTop: 20 },
+  classificaTitle: { fontSize: 16 },
+  redSquareSmall: {
+    width: 36,
+    height: 36,
+    backgroundColor: 'red',
+    borderRadius: 8,
+    marginRight: 12,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 18,
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    marginTop: 20,
-    marginBottom: 10,
-    fontWeight: '600',
-  },
-  item: {
-    marginBottom: 10,
+  bottomBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
   },
 });
+
+export default HomeScreen;
