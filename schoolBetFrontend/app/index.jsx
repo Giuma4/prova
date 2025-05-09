@@ -1,20 +1,32 @@
+import React, { useEffect, useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
+import axios from 'axios';
+
+const API_BASE = 'https://tuo-backend-url.com/api'; // <-- Modifica con il tuo URL reale
 
 const HomePage = ({ navigation }) => {
+    const [leaderboard, setLeaderboard] = useState([]);
     const userBalance = 1000;
-    const leaderboard = [
-        { id: '1', name: 'User1', avatar: 'https://randomuser.me/api/portraits/men/1.jpg' },
-        { id: '2', name: 'User2', avatar: 'https://randomuser.me/api/portraits/men/2.jpg' },
-        { id: '3', name: 'User3', avatar: 'https://randomuser.me/api/portraits/men/3.jpg' },
-        { id: '4', name: 'User4', avatar: 'https://randomuser.me/api/portraits/men/4.jpg' },
-        { id: '5', name: 'User5', avatar: 'https://randomuser.me/api/portraits/men/5.jpg' },
-    ];
+
+    // Fetch items all'avvio
+    useEffect(() => {
+        fetchItems();
+    }, []);
+
+    const fetchItems = async () => {
+        try {
+            const response = await axios.get(`${API_BASE}/items/`);
+            setLeaderboard(response.data);
+        } catch (error) {
+            console.error('Errore durante il fetch degli item:', error);
+        }
+    };
 
     const renderLeaderboardItem = ({ item }) => (
         <View style={styles.leaderboardItem}>
-            <Image source={{ uri: item.avatar }} style={styles.avatar} />
-            <Text style={styles.leaderboardText}>{item.name}</Text>
+            <Image source={{ uri: item.avatar || 'https://via.placeholder.com/40' }} style={styles.avatar} />
+            <Text style={styles.leaderboardText}>{item.title}: {item.description}</Text>
         </View>
     );
 
@@ -37,7 +49,7 @@ const HomePage = ({ navigation }) => {
                 <FlatList
                     data={leaderboard}
                     renderItem={renderLeaderboardItem}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item) => item.id.toString()}
                 />
             </View>
 
@@ -49,7 +61,7 @@ const HomePage = ({ navigation }) => {
                 <TouchableOpacity onPress={() => navigation.navigate('Search')}>
                     <Icon name="search" size={24} color="#000" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('Refresh')}>
+                <TouchableOpacity onPress={fetchItems}>
                     <Icon name="refresh-cw" size={24} color="#000" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
@@ -100,7 +112,7 @@ const styles = StyleSheet.create({
     avatar: {
         width: 40,
         height: 40,
-        borderRadius: 20,
+        borderRadius: 20, 
         marginRight: 12,
     },
     leaderboardText: {
