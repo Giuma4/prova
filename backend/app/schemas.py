@@ -1,14 +1,36 @@
+    #schemas.py
 from pydantic import BaseModel
 
-class ItemBase(BaseModel):
-    title: str
+# --- User Schemas ---
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+class User(BaseModel):
+    id: int
+    username: str
+    balance: int
+
+    class Config:
+        orm_mode = True
+
+
+
+# --- Item Schemas (se li usi ancora) ---
+class ItemCreate(BaseModel):
+    name: str
     description: str
 
-class ItemCreate(ItemBase):
-    pass
-
-class Item(ItemBase):
+class Item(BaseModel):
     id: int
+    name: str
+    description: str
+
+    class Config:
+        orm_mode = True
+
+class UserPublic(BaseModel):
+    username: str
 
     class Config:
         orm_mode = True
