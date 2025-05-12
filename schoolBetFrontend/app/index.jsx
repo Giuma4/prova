@@ -1,128 +1,70 @@
-  // index.jsx
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Alert
-} from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
+import { View, Text, FlatList, StyleSheet, Button, Alert } from 'react-native';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
-
+import FooterNav from './FooterNav';  // <-- import
 const API_BASE = 'http://127.0.0.1:8000';
 
-const HomePage = () => {
+export default function index() {
   const navigation = useNavigation();
   const route = useRoute();
-  const user = route?.params?.user;
+  const user = route.params?.user;
   const [leaderboard, setLeaderboard] = useState([]);
 
   useEffect(() => {
-    fetchLeaderboard();
+    axios.get(`${API_BASE}/users/`)
+      .then(res => setLeaderboard(res.data))
+      .catch(err => console.error(err));
   }, []);
 
-  const fetchLeaderboard = async () => {
-    try {
-      const response = await axios.get(`${API_BASE}/users/`);
-      setLeaderboard(response.data);
-    } catch (error) {
-      console.error('Errore fetch leaderboard:', error.message);
-    }
-  };
-
-  const renderLeaderboardItem = ({ item }) => (
-    <View style={styles.leaderboardItem}>
-      <Image
-        source={{ uri: item.avatar || 'https://via.placeholder.com/40' }}
-        style={styles.avatar}
-      />
-      <Text style={styles.leaderboardText}>
-        {item.id}° {item.username} — €{item.balance}
-      </Text>
-    </View>
-  );
-
-  const handleLogout = () => {
-    Alert.alert('Logout', 'Sei stato disconnesso.');
-    navigation.navigate('Login');
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('auth_token');
+    // ✏️ Torna a LoginPage
+    navigation.replace('LoginPage');
   };
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerText}>School Bet</Text>
-      </View>
-
-      {/* Card Saldo */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Soldi</Text>
+        <Text style={styles.cardTitle}>Saldo</Text>
         <Text style={styles.balance}>€{user?.balance ?? '—'}</Text>
+        <Button title="Logout" onPress={handleLogout} />
       </View>
 
-      {/* Card Classifica */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Classifica classe</Text>
+        <Text style={styles.cardTitle}>Classifica</Text>
         <FlatList
           data={leaderboard}
-          renderItem={renderLeaderboardItem}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={i => i.id.toString()}
+          renderItem={({ item }) => (
+            <Text style={styles.leaderboardItem}>
+              {item.username} — €{item.balance}
+            </Text>
+          )}
         />
       </View>
-
-      {/* Navbar */}
-      <View style={styles.navBar}>
-        <TouchableOpacity onPress={() => navigation.navigate('HomePage')}>
-          <Icon name="home" size={24} color="#000" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('SignupPage')}>
-          <Icon name="user-plus" size={24} color="#000" />
-        </TouchableOpacity>
-         <TouchableOpacity onPress={() => navigation.navigate('LoginPage')}>
-          <Icon name="log-in" size={24} color="#000" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleLogout}>
-          <Icon name="log-out" size={24} color="#000" />
-        </TouchableOpacity>
-      </View>
+      <FooterNav />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, paddingBottom: 70, backgroundColor: '#fff' },
-  header: { alignItems: 'center', marginBottom: 16 },
-  headerText: { fontSize: 20, fontWeight: 'bold' },
+  container: { flex: 1, padding: 20, backgroundColor: '#f0f0f5' },
   card: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    backgroundColor: '#fff',
+    padding: 20,
+    marginBottom: 20,
+    borderRadius: 10,
+    boxShadow: '0px 2px 4px rgba(0,0,0,0.2)',
+    elevation: 5,
   },
-  cardTitle: { fontWeight: 'bold', fontSize: 14, marginBottom: 8 },
-  balance: { fontSize: 28, fontWeight: 'bold' },
-  leaderboardItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 12 },
-  leaderboardText: { fontSize: 16 },
-  navBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    height: 60,
-    backgroundColor: '#f8f8f8',
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
+  cardTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+  balance: { fontSize: 24, fontWeight: 'bold', marginBottom: 10 },
+  leaderboardItem: {
+    fontSize: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
 });
-
-export default HomePage;

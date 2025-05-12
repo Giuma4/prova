@@ -1,51 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/Ionicons';
+import FooterNav from './FooterNav';  // <-- import
+import LoginPage from './LoginPage';
+import SignupPage from './SignupPage';
+import index from './index';
 
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
-import HomePage from './pages/HomePage';
+const Tab = createBottomTabNavigator();
 
-const Stack = createStackNavigator();
+export default function App() {
+  const [isLoading, setIsLoading] = useState(true);
 
-const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);  // Stato per determinare se l'utente è loggato
-  const [isLoading, setIsLoading] = useState(true);      // Stato per gestire il loading della verifica del login
-
+  // Se vuoi mostrare i tab anche prima del login, non serve controllare isLoggedIn qui
   useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        const token = await AsyncStorage.getItem('auth_token'); // Ottieni il token salvato
-        if (token) {
-          setIsLoggedIn(true); // L'utente è loggato se c'è un token
-        } else {
-          setIsLoggedIn(false); // L'utente non è loggato
-        }
-      } catch (error) {
-        console.error('Errore durante il controllo del login:', error);
-        setIsLoggedIn(false); // Assicurati di considerare l'utente come non loggato in caso di errore
-      } finally {
-        setIsLoading(false); // Dopo aver verificato, cambia lo stato di loading
-      }
-    };
-
-    checkLoginStatus(); // Controlla il login al caricamento dell'app
+    // eventuale check token, ma non blocchiamo il rendering dei tab
+    setIsLoading(false);
   }, []);
 
-  if (isLoading) {
-    return null; // Puoi mostrare uno spinner o qualcosa del genere mentre il login è in fase di verifica
-  }
+  if (isLoading) return null;
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName={isLoggedIn ? 'Homepage' : 'Login'}>
-        <Stack.Screen name="Login" component={LoginPage} />
-        <Stack.Screen name="Signup" component={SignupPage} />
-        <Stack.Screen name="Homepage" component={HomePage} />
-      </Stack.Navigator>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => {
+            let name;
+            if (route.name === 'LoginPage')    name = 'log-in-outline';
+            if (route.name === 'SignupPage')   name = 'person-add-outline';
+            if (route.name === 'index')     name = 'home-outline';
+            return <Icon name={name} size={size} color={color} />;
+          },
+          tabBarActiveTintColor: '#0066cc',
+          tabBarInactiveTintColor: '#666',
+        })}
+      >
+        <Tab.Screen name="LoginPage"  component={LoginPage} />
+        <Tab.Screen name="Signuppage" component={SignupPage} />
+        <Tab.Screen name="index"   component={index} />
+      </Tab.Navigator>
     </NavigationContainer>
   );
-};
-
-export default App;
+}

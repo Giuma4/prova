@@ -1,4 +1,3 @@
-    #schemas.py
 from pydantic import BaseModel
 
 # --- User Schemas ---
@@ -9,12 +8,10 @@ class UserCreate(BaseModel):
 class User(BaseModel):
     id: int
     username: str
-    balance: int
+    balance: int  # Aggiunto campo per il saldo
 
     class Config:
         orm_mode = True
-
-
 
 # --- Item Schemas (se li usi ancora) ---
 class ItemCreate(BaseModel):
