@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, Button, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Button, Alert, Image } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/Ionicons';
+
 import { useNavigation, useRoute } from '@react-navigation/native';
 import FooterNav from './FooterNav';  // <-- import
 const API_BASE = 'http://127.0.0.1:8000';
 
-export default function index() {
+export default function Index() {
   const navigation = useNavigation();
   const route = useRoute();
   const user = route.params?.user;
@@ -14,22 +16,31 @@ export default function index() {
 
   useEffect(() => {
     axios.get(`${API_BASE}/users/`)
-      .then(res => setLeaderboard(res.data))
+      .then(res => {
+        const sortedData = res.data.sort((a, b) => b.balance - a.balance); // Ordina in ordine decrescente
+        setLeaderboard(sortedData);
+      })
       .catch(err => console.error(err));
   }, []);
 
-  const handleLogout = async () => {
-    await AsyncStorage.removeItem('auth_token');
-    // ✏️ Torna a LoginPage
-    navigation.replace('LoginPage');
-  };
+  if (!user) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loginPromptContainer}>
+          <Icon name="person-add-outline" size={28} color="#0066cc" />         
+          <Text style={styles.loginPrompt}>Effettua il login per vedere i dati del tuo account!</Text>
+          <Text style={styles.subText}>Chi sarà il prossimo a essere interrogato?</Text>
+        </View>
+        <FooterNav />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Saldo</Text>
         <Text style={styles.balance}>€{user?.balance ?? '—'}</Text>
-        <Button title="Logout" onPress={handleLogout} />
       </View>
 
       <View style={styles.card}>
@@ -66,5 +77,33 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+  },
+  loginPromptContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 50,
+    padding: 20,
+    backgroundColor: '#ffffff',
+    borderRadius: 15,
+    boxShadow: '0px 2px 5px rgba(0,0,0,0.1)',
+    elevation: 5,
+  },
+  loginPrompt: {
+    fontSize: 20,
+    color: '#ff6347', // un colore più caldo
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  subText: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  icon: {
+    width: 50,
+    height: 50,
+    marginBottom: 20,
   },
 });

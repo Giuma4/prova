@@ -46,6 +46,8 @@ export default function SignupPage() {
         onChangeText={setPassword}
       />
       <Button title="Registrati" onPress={handleSignup} />
+      <FooterNav />
+      
     </View>
   );
 }
