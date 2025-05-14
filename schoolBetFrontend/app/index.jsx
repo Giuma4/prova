@@ -1,3 +1,4 @@
+// index.jsx
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, Button, Alert, Image } from 'react-native';
 import axios from 'axios';
@@ -8,13 +9,14 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import FooterNav from './FooterNav';  // <-- import
 const API_BASE = 'http://127.0.0.1:8000';
 
-export default function Index() {
+export default function index() {
   const navigation = useNavigation();
   const route = useRoute();
   const user = route.params?.user;
   const [leaderboard, setLeaderboard] = useState([]);
 
   useEffect(() => {
+    
     axios.get(`${API_BASE}/users/`)
       .then(res => {
         const sortedData = res.data.sort((a, b) => b.balance - a.balance); // Ordina in ordine decrescente

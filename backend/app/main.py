@@ -3,6 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from . import crud, models, schemas
 from .database import SessionLocal, engine
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from . import crud, models, schemas
+from .database import SessionLocal, engine
 
 # Crea le tabelle nel DB
 models.Base.metadata.create_all(bind=engine)
@@ -41,14 +46,32 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db=db, user=user)
 
 # LOGIN UTENTE
-@app.post("/login/", response_model=schemas.User)
+@app.post("/login/")
 def login(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.authenticate_user(db, username=user.username, password=user.password)
     if not db_user:
         raise HTTPException(status_code=400, detail="Credenziali non valide")
-    return db_user
+    # Aggiungiamo un "token" dummy per test
+    return {
+        "id": db_user.id,
+        "username": db_user.username,
+        "balance": db_user.balance,
+        "token": "dummy-token"  # in produzione, JWT o simili
+    }
+
 
 # ENDPOINT USERS
 @app.get("/users/", response_model=list[schemas.User])
 def read_users(db: Session = Depends(get_db)):
     return db.query(models.User).all()
+
+@app.get("/classes/", response_model=list[schemas.ClassOut])
+def read_classes(search: str = None, db: Session = Depends(get_db)):
+    return crud.get_classes(db, search)
+
+@app.post("/classes/", response_model=schemas.ClassOut)
+def create_new_class(class_in: schemas.ClassCreate, db: Session = Depends(get_db)):
+    existing = crud.get_class_by_name(db, class_in.name)
+    if existing:
+        raise HTTPException(status_code=400, detail="Classe già esistente")
+    return crud.create_class(db, class_in)

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-# --- User Schemas ---
+# --- User Schemi ---
 class UserCreate(BaseModel):
     username: str
     password: str
@@ -8,12 +8,12 @@ class UserCreate(BaseModel):
 class User(BaseModel):
     id: int
     username: str
-    balance: int  # Aggiunto campo per il saldo
+    balance: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-# --- Item Schemas (se li usi ancora) ---
+# --- Item Schemi ---
 class ItemCreate(BaseModel):
     name: str
     description: str
@@ -24,10 +24,19 @@ class Item(BaseModel):
     description: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-class UserPublic(BaseModel):
-    username: str
+# --- Classe Schemi ---
+class ClassBase(BaseModel):
+    name: str
+    max_participants: int
+
+class ClassCreate(ClassBase):
+    admin_id: int
+
+class ClassOut(ClassBase):
+    id: int
+    admin_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True

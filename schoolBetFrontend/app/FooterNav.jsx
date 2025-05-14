@@ -1,19 +1,21 @@
+// FooterNav.jsx
 import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRoute } from '@react-navigation/native';
 
 export default function FooterNav() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigation = useNavigation();
+  const route = useRoute();
+  const user = route.params?.user;
 
   useEffect(() => {
     const checkLoginStatus = async () => {
       const token = await AsyncStorage.getItem('auth_token');
-      if (token) {
-        setIsLoggedIn(true);
-      }
+      setIsLoggedIn(!!token);
     };
 
     checkLoginStatus();
@@ -21,16 +23,13 @@ export default function FooterNav() {
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('auth_token');
+    await AsyncStorage.removeItem('user_data');
     setIsLoggedIn(false);
-    navigation.replace('index');  // Torna alla schermata home dopo il logout
+    navigation.replace('index');
   };
 
   const handleHomePress = () => {
-    if (isLoggedIn) {
-      navigation.replace('Index');  // Vai alla home se l'utente è loggato
-    } else {
-      navigation.replace('index');  // Vai alla home senza autenticazione
-    }
+    navigation.replace(isLoggedIn ? 'index' : 'Index', { user });
   };
 
   return (
@@ -40,7 +39,6 @@ export default function FooterNav() {
         <Text style={styles.label}>Home</Text>
       </TouchableOpacity>
 
-      {/* Mostra Login/Signup se l'utente non è loggato */}
       {!isLoggedIn && (
         <>
           <TouchableOpacity onPress={() => navigation.replace('LoginPage')} style={styles.iconContainer}>
@@ -54,7 +52,13 @@ export default function FooterNav() {
         </>
       )}
 
-      {/* Mostra Logout se l'utente è loggato */}
+      {isLoggedIn && (
+        <TouchableOpacity onPress={() => navigation.navigate('ClassesPage', { user })} style={styles.iconContainer}>
+          <Icon name="school-outline" size={28} color="#0066cc" />
+          <Text style={styles.label}>Classi</Text>
+        </TouchableOpacity>
+      )}
+
       {isLoggedIn && (
         <TouchableOpacity onPress={handleLogout} style={styles.iconContainer}>
           <Icon name="log-out-outline" size={28} color="#0066cc" />
@@ -64,7 +68,6 @@ export default function FooterNav() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',

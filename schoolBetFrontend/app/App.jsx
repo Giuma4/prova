@@ -1,21 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/Ionicons';
-import FooterNav from './FooterNav';  // <-- import
+import FooterNav from './FooterNav';
 import LoginPage from './LoginPage';
 import SignupPage from './SignupPage';
-import index from './index';
+import Index from './index';
+import ClassesPage from './ClassesPage';
 
 const Tab = createBottomTabNavigator();
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
 
-  // Se vuoi mostrare i tab anche prima del login, non serve controllare isLoggedIn qui
   useEffect(() => {
-    // eventuale check token, ma non blocchiamo il rendering dei tab
     setIsLoading(false);
   }, []);
 
@@ -28,18 +26,20 @@ export default function App() {
           headerShown: false,
           tabBarIcon: ({ color, size }) => {
             let name;
-            if (route.name === 'LoginPage')    name = 'log-in-outline';
-            if (route.name === 'SignupPage')   name = 'person-add-outline';
-            if (route.name === 'index')     name = 'home-outline';
+            if (route.name === 'LoginPage') name = 'log-in-outline';
+            if (route.name === 'SignupPage') name = 'person-add-outline';
+            if (route.name === 'index') name = 'home-outline';
+            if (route.name === 'ClassesPage') name = 'school-outline';
             return <Icon name={name} size={size} color={color} />;
           },
           tabBarActiveTintColor: '#0066cc',
           tabBarInactiveTintColor: '#666',
         })}
       >
-        <Tab.Screen name="LoginPage"  component={LoginPage} />
-        <Tab.Screen name="Signuppage" component={SignupPage} />
-        <Tab.Screen name="index"   component={index} />
+        <Tab.Screen name="LoginPage" component={LoginPage} />
+        <Tab.Screen name="SignupPage" component={SignupPage} />
+        <Tab.Screen name="index" component={Index} />
+        <Tab.Screen name="ClassesPage" component={ClassesPage} />
       </Tab.Navigator>
     </NavigationContainer>
   );
