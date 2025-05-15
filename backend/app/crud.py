@@ -1,64 +1,82 @@
-from sqlalchemy.orm import Session
-from . import models, schemas
+from .firebase_client import db
 from typing import List, Optional
 
 # --- USER CRUD ---
 
-def get_user_by_username(db: Session, username: str):
-    return db.query(models.User).filter(models.User.username == username).first()
+def get_user_by_username(username: str) -> Optional[dict]:
+    docs = db.collection("users").where("username", "==", username).stream()
+    for doc in docs:
+        data = doc.to_dict()
+        data["id"] = doc.id
+        return data
+    return None
 
 
-def create_user(db: Session, user: schemas.UserCreate):
-    db_user = models.User(username=user.username, password=user.password)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+def get_all_users() -> List[dict]:
+    docs = db.collection("users").stream()
+    return [{**doc.to_dict(), "id": doc.id} for doc in docs]
 
 
-def authenticate_user(db: Session, username: str, password: str):
-    user = get_user_by_username(db, username)
-    if user and user.password == password:
+def create_user(user_in: dict) -> dict:
+    payload = {"username": user_in["username"],
+               "password": user_in["password"],
+               "balance": 1000}
+    _, doc_ref = db.collection("users").add(payload)
+    return {**payload, "id": doc_ref.id}
+
+
+def authenticate_user(username: str, password: str) -> Optional[dict]:
+    user = get_user_by_username(username)
+    if user and user.get("password") == password:
         return user
     return None
 
-# --- ITEM CRUD (se li usi ancora) ---
+# --- ITEM CRUD ---
 
-def create_item(db: Session, item: schemas.ItemCreate):
-    db_item = models.Item(name=item.name, description=item.description)
-    db.add(db_item)
-    db.commit()
-    db.refresh(db_item)
-    return db_item
-
-
-def get_items(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(models.Item).offset(skip).limit(limit).all()
+def create_item(item_in: dict) -> dict:
+    payload = {"name": item_in["name"],
+               "description": item_in.get("description", "")}
+    _, doc_ref = db.collection("items").add(payload)
+    return {**payload, "id": doc_ref.id}
 
 
-def get_item(db: Session, item_id: int):
-    return db.query(models.Item).filter(models.Item.id == item_id).first()
+def get_items(skip: int = 0, limit: int = 10) -> List[dict]:
+    docs = db.collection("items").offset(skip).limit(limit).stream()
+    return [{**doc.to_dict(), "id": doc.id} for doc in docs]
+
+
+def get_item(item_id: str) -> Optional[dict]:
+    doc = db.collection("items").document(item_id).get()
+    if doc.exists:
+        data = doc.to_dict()
+        data["id"] = doc.id
+        return data
+    return None
 
 # --- CLASS CRUD ---
 
-def get_classes(db: Session, search: Optional[str] = None) -> List[models.Class]:
-    query = db.query(models.Class)
+def get_classes(search: Optional[str] = None) -> List[dict]:
+    col = db.collection("classes")
     if search:
-        query = query.filter(models.Class.name.ilike(f"%{search}%"))
-    return query.all()
+        # Firestore non supporta 'ilike', quindi usiamo filter semplice
+        docs = col.where("name", ">=", search).where("name", "<=", search + "").stream()
+    else:
+        docs = col.stream()
+    return [{**doc.to_dict(), "id": doc.id} for doc in docs]
 
 
-def get_class_by_name(db: Session, name: str) -> models.Class:
-    return db.query(models.Class).filter(models.Class.name == name).first()
+def get_class_by_name(name: str) -> Optional[dict]:
+    docs = db.collection("classes").where("name", "==", name).stream()
+    for doc in docs:
+        data = doc.to_dict()
+        data["id"] = doc.id
+        return data
+    return None
 
 
-def create_class(db: Session, class_in: schemas.ClassCreate) -> models.Class:
-    db_class = models.Class(
-        name=class_in.name,
-        max_participants=class_in.max_participants,
-        admin_id=class_in.admin_id
-    )
-    db.add(db_class)
-    db.commit()
-    db.refresh(db_class)
-    return db_class
+def create_class(class_in: dict) -> dict:
+    payload = {"name": class_in["name"],
+               "max_participants": class_in["max_participants"],
+               "admin_id": class_in["admin_id"]}
+    _, doc_ref = db.collection("classes").add(payload)
+    return {**payload, "id": doc_ref.id}

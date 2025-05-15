@@ -1,42 +1,34 @@
 from pydantic import BaseModel
+from typing import Optional, List
 
 # --- User Schemi ---
 class UserCreate(BaseModel):
     username: str
     password: str
 
-class User(BaseModel):
-    id: int
+class UserOut(BaseModel):
+    id: str
     username: str
     balance: int
 
-    class Config:
-        from_attributes = True
-
-# --- Item Schemi ---
+# --- Item Schemi --- (se usi ancora gli item)
 class ItemCreate(BaseModel):
     name: str
-    description: str
+    description: Optional[str] = ""
 
-class Item(BaseModel):
-    id: int
+class ItemOut(BaseModel):
+    id: str
     name: str
-    description: str
-
-    class Config:
-        from_attributes = True
+    description: Optional[str]
 
 # --- Classe Schemi ---
-class ClassBase(BaseModel):
+class ClassCreate(BaseModel):
     name: str
     max_participants: int
+    admin_id: str  # ora è un ID Firestore (string)
 
-class ClassCreate(ClassBase):
-    admin_id: int
-
-class ClassOut(ClassBase):
-    id: int
-    admin_id: int
-
-    class Config:
-        from_attributes = True
+class ClassOut(BaseModel):
+    id: str
+    name: str
+    max_participants: int
+    admin_id: str
