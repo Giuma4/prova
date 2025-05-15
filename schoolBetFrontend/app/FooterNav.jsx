@@ -1,9 +1,10 @@
+// FooterNav.jsx
 import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Platform, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from './api';
+import { useRoute } from '@react-navigation/native';
 
 export default function FooterNav() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -16,16 +17,19 @@ export default function FooterNav() {
       const token = await AsyncStorage.getItem('auth_token');
       setIsLoggedIn(!!token);
     };
+
     checkLoginStatus();
   }, []);
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('auth_token');
+    await AsyncStorage.removeItem('user_data');
+    setIsLoggedIn(false);
     navigation.replace('index');
   };
 
   const handleHomePress = () => {
-    navigation.replace('index', { user });
+    navigation.replace(isLoggedIn ? 'index' : 'Index', { user });
   };
 
   return (
@@ -35,7 +39,7 @@ export default function FooterNav() {
         <Text style={styles.label}>Home</Text>
       </TouchableOpacity>
 
-      {!isLoggedIn ? (
+      {!isLoggedIn && (
         <>
           <TouchableOpacity onPress={() => navigation.replace('LoginPage')} style={styles.iconContainer}>
             <Icon name="log-in-outline" size={28} color="#0066cc" />
@@ -46,22 +50,24 @@ export default function FooterNav() {
             <Text style={styles.label}>Signup</Text>
           </TouchableOpacity>
         </>
-      ) : (
-        <>
-          <TouchableOpacity onPress={() => navigation.navigate('ClassesPage', { user })} style={styles.iconContainer}>
-            <Icon name="school-outline" size={28} color="#0066cc" />
-            <Text style={styles.label}>Classi</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleLogout} style={styles.iconContainer}>
-            <Icon name="log-out-outline" size={28} color="#0066cc" />
-            <Text style={styles.label}>Logout</Text>
-          </TouchableOpacity>
-        </>
+      )}
+
+      {isLoggedIn && (
+        <TouchableOpacity onPress={() => navigation.navigate('ClassesPage', { user })} style={styles.iconContainer}>
+          <Icon name="school-outline" size={28} color="#0066cc" />
+          <Text style={styles.label}>Classi</Text>
+        </TouchableOpacity>
+      )}
+
+      {isLoggedIn && (
+        <TouchableOpacity onPress={handleLogout} style={styles.iconContainer}>
+          <Icon name="log-out-outline" size={28} color="#0066cc" />
+          <Text style={styles.label}>Logout</Text>
+        </TouchableOpacity>
       )}
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',

@@ -1,26 +1,30 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import api from './api';
+import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import FooterNav from './FooterNav';
+import FooterNav from './FooterNav';  // <-- import
+const API_BASE = 'http://127.0.0.1:8000';
+
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(''); // Stato per l'errore
   const navigation = useNavigation();
 
   const handleLogin = async () => {
     try {
-      const params = new URLSearchParams();
-      params.append('username', username);
-      params.append('password', password);
-
-      const { data } = await api.post('/token', params);
-      await AsyncStorage.setItem('auth_token', data.access_token);
-      navigation.replace('index', { user: data });
+      const { data, status } = await axios.post(`${API_BASE}/login/`, { username, password });
+      if (status === 200) {
+        await AsyncStorage.setItem('auth_token', data.token || 'dummy');
+        navigation.replace('index', { user: data });
+      } else {
+        // Se la risposta non è 200, mostra un errore
+        setError('Credenziali non valide');
+      }
     } catch (e) {
-      setError('Credenziali non valide, se non sei registrato, registrati ora!');
+        setError('Credenziali non valide, se non sei registrato, registrati ora!');
+      console.error(e);
     }
   };
 
