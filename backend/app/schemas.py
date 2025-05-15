@@ -40,3 +40,8 @@ class ClassOut(ClassBase):
 
     class Config:
         from_attributes = True
+
+# --- Token Schemi ---
+class Token(BaseModel):
+    access_token: str
+    token_type: str

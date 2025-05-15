@@ -1,9 +1,8 @@
+// File: App.jsx
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Text, Alert } from 'react-native';
-import axios from 'axios';
+import api from './api';
 import { useNavigation } from '@react-navigation/native';
-import FooterNav from './FooterNav';  // <-- import
-const API_BASE = 'http://127.0.0.1:8000';
 
 export default function SignupPage() {
   const [username, setUsername] = useState('');
@@ -16,14 +15,12 @@ export default function SignupPage() {
       return;
     }
     try {
-      const response = await axios.post(`${API_BASE}/users/`, { username, password });
+      const response = await api.post('/users/', { username, password });
       if ([200, 201].includes(response.status)) {
         Alert.alert('Successo', 'Utente registrato');
-        // ✏️ Torna a LoginPage
         navigation.replace('LoginPage');
       }
     } catch (e) {
-      console.error(e);
       Alert.alert('Errore', 'Registrazione fallita');
     }
   };
@@ -46,8 +43,6 @@ export default function SignupPage() {
         onChangeText={setPassword}
       />
       <Button title="Registrati" onPress={handleSignup} />
-      <FooterNav />
-      
     </View>
   );
 }
